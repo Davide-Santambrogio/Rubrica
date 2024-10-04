@@ -35,6 +35,10 @@ def visualizza_contatti():
 
 
 def aggiungi_contatto(nome, cognome, telefono):
+
+    nome = nome.capitalize()
+    cognome = cognome.capitalize()
+
     if not solo_lettere(nome):
         print("Il nome deve contenere solo lettere.")
         return
