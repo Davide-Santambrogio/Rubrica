@@ -4,164 +4,195 @@ import os
 # Nome del file di testo per salvare i contatti
 FILE_RUBRICA = 'rubrica.txt'
 
-# Funzione per verificare se una stringa è composta solo da lettere
 
+class AddressBook:
+    def __init__(self, file):
+        self.file = file
+        self.initialize_file()  # Inizializza il file della rubrica
 
-def solo_lettere(s):
-    return all(char.isalpha() for char in s)
+    def initialize_file(self):
+        # Crea il file della rubrica se non esiste già
+        if not os.path.exists(self.file):
+            with open(self.file, 'w') as f:
+                pass  # Crea un file vuoto
 
-# Funzione per verificare se un numero di telefono è valido
+    def only_letters(self, s):
+        # Controlla se la stringa contiene solo lettere
+        return all(char.isalpha() for char in s)
 
+    def valid_phone_number(self, phone):
+        # Controlla se il numero di telefono è valido
+        return phone.isdigit() and len(phone) <= 10
 
-def numero_telefono_valido(telefono):
-    return telefono.isdigit() and len(telefono) <= 10
+    def read_contacts(self):
+        # Legge i contatti dal file
+        if not os.path.exists(self.file):
+            return []
+        with open(self.file, 'r') as f:
+            return f.readlines()
 
-# Funzione per visualizzare tutti i contatti
+    def write_contacts(self, contacts):
+        # Scrive i contatti nel file
+        with open(self.file, 'w') as f:
+            f.writelines(contacts)
 
+    def display_contacts(self):
+        # Visualizza tutti i contatti nella rubrica
+        contacts = self.read_contacts()
+        if contacts:
+            for contact in contacts:
+                print(contact.strip())
+        else:
+            print("Non ci sono contatti nella rubrica.")
 
-def visualizza_contatti():
-    if not os.path.exists(FILE_RUBRICA):
-        print("Non ci sono contatti salvati.")
-        return
-    with open(FILE_RUBRICA, 'r') as f:  # usiamo la modalità di apertura r (read)
-        contatti = f.readlines()
-    if contatti:
-        for contatto in contatti:
-            print(contatto.strip())
-    else:
-        print("Non ci sono contatti nella rubrica.")
+    def add_contact(self, first_name, last_name, phone):
+        # Aggiungi un nuovo contatto alla rubrica.
+        first_name = first_name.capitalize()  # Maiuscola per il nome
+        last_name = last_name.capitalize()  # Maiuscola per il cognome
 
-# Funzione per aggiungere o modificare un contatto
+        # Controlla la validità del nome
+        if not self.only_letters(first_name):
+            print("Il nome deve contenere solo lettere.")
+            return
+        if not self.only_letters(last_name):
+            print("Il cognome deve contenere solo lettere.")
+            return
+        if not self.valid_phone_number(phone):
+            print("""Il numero di telefono deve contenere solo numeri
+                  e avere un massimo di 10 cifre.""")
+            return
 
+        contacts = self.read_contacts()  # Legge i contatti esistenti
+        contact_found = False
+        modified_contacts = []
 
-def aggiungi_contatto(nome, cognome, telefono):
+        # Controlla se il contatto esiste già
+        for contact in contacts:
+            contact_first_name, contact_last_name, *n = contact.strip().split()
 
-    nome = nome.capitalize()
-    cognome = cognome.capitalize()
+            if (contact_first_name.lower() == first_name.lower() and
+                    contact_last_name.lower() == last_name.lower()):
+                contact_found = True
+                print(
+                    f"""Il contatto {first_name} {last_name} esiste già.
+                      Vuoi modificare il numero di telefono? (y/n)"""
+                )
 
-    if not solo_lettere(nome):
-        print("Il nome deve contenere solo lettere.")
-        return
-    if not solo_lettere(cognome):
-        print("Il cognome deve contenere solo lettere.")
-        return
-    if not numero_telefono_valido(telefono):
-        print("Il numero di telefono deve contenere solo numeri e avere un massimo di 10 cifre.")
-        return
-
-    contatto_trovato = False
-    contatti_modificati = []
-
-    # Controllo se il contatto esiste già
-    if os.path.exists(FILE_RUBRICA):
-        with open(FILE_RUBRICA, 'r') as f:  # usiamo la modalità di apertura r (read)
-            contatti = f.readlines()
-
-        for contatto in contatti:
-            contatto_nome, contatto_cognome, *numero = contatto.strip().split()
-            if contatto_nome.lower() == nome.lower() and contatto_cognome.lower() == cognome.lower():
-                contatto_trovato = True
-                print("Il contatto " + nome + " " + cognome +
-                      " esiste già. Vuoi modificare il numero di telefono? (y/n)")
-                risposta = input().strip().lower()
-                if risposta == 'y':
-                    # Aggiungi il nuovo numero
-                    contatti_modificati.append(
-                        nome + " " + cognome + " " + telefono + "\n")
-                    print("Contatto " + nome + " " + cognome + " modificato.")
+                answer = input().strip().lower()
+                if answer == 'y':
+                    # Modifica il contatto
+                    modified_contacts.append(
+                        f"{first_name} {last_name} {phone}\n")
+                    print(f"Contatto {first_name} {last_name} modificato.")
                 else:
-                    # Mantieni il contatto originale
-                    contatti_modificati.append(contatto)
+                    # Mantiene il contatto esistente
+                    modified_contacts.append(contact)
                     print("Nessuna modifica al contatto.")
                 continue
-            contatti_modificati.append(contatto)  # Mantieni gli altri contatti
+            modified_contacts.append(contact)
 
-    if not contatto_trovato:
-        # Aggiungi nuovo contatto
-        contatti_modificati.append(
-            nome + " " + cognome + " " + telefono + "\n")
-        print("Contatto " + nome + " " + cognome + " aggiunto.")
+        # Se il contatto non esiste, lo aggiunge alla lista
+        if not contact_found:
+            modified_contacts.append(f"{first_name} {last_name} {phone}\n")
+            print(f"Contatto {first_name} {last_name} aggiunto.")
 
-    with open(FILE_RUBRICA, 'w') as f:  # usiamo la modalità di apertura w (write)
-        f.writelines(contatti_modificati)
+        # Scrive i contatti modificati nel file
+        self.write_contacts(modified_contacts)
 
-# Funzione per eliminare un contatto specifico
+    def delete_contact(self, first_name, last_name):
+        # Elimina un contatto dalla rubrica.
+        contacts = self.read_contacts()
+        first_name_lower = first_name.lower()
+        last_name_lower = last_name.lower()
+        modified_contacts = []
+        contact_found = False
 
+        for contact in contacts:
+            contact_first_name, contact_last_name, *n = contact.strip().split()
 
-def elimina_contatto(nome, cognome):
-    if not os.path.exists(FILE_RUBRICA):
-        print("Non ci sono contatti salvati.")
-        return
-    with open(FILE_RUBRICA, 'r') as f:  # usiamo la modalità di apertura r (read)
-        contatti = f.readlines()
+            # Se il contatto corrisponde a quello da eliminare
+            if (contact_first_name.lower() == first_name_lower
+                    and contact_last_name.lower() == last_name_lower):
+                contact_found = True
+                continue
+            else:
+                modified_contacts.append(contact)
 
-    # Converti il nome e cognome in minuscolo per il confronto
-    nome_lower = nome.lower()
-    cognome_lower = cognome.lower()
-
-    contatti_modificati = []
-    contatto_trovato = False
-
-    for contatto in contatti:
-        # Estrai il nome e cognome dal contatto e converti in minuscolo
-        contatto_nome, contatto_cognome, *_ = contatto.strip().split()
-
-        # Controlla se è il contatto da eliminare
-        if contatto_nome.lower() == nome_lower and contatto_cognome.lower() == cognome_lower:
-            contatto_trovato = True
-            continue  # Salta il contatto da eliminare
+        if not contact_found:
+            print(f"Contatto {first_name} {last_name} non trovato.")
         else:
-            contatti_modificati.append(contatto)  # Mantieni gli altri contatti
+            self.write_contacts(modified_contacts)
+            print(f"Contatto {first_name} {last_name} eliminato.")
 
-    if not contatto_trovato:
-        print("Contatto " + nome + " " + cognome + " non trovato.")
-    else:
-        with open(FILE_RUBRICA, 'w') as f:  # usiamo la modalità di apertura w (write)
-            f.writelines(contatti_modificati)
-        print("Contatto " + nome + " " + cognome + " eliminato.")
+    def search_contact(self, term):
+        # Cerca un contatto in base a nome o cognome.
+        contacts = self.read_contacts()
+        results = []
 
-# Funzione principale per gestire i comandi
+        for contact in contacts:
+            contact_first_name, contact_last_name, *n = contact.strip().split()
+            # Controlla se il termine di ricerca è nel nome o cognome
+            if (term.lower() in contact_first_name.lower() or
+                    term.lower() in contact_last_name.lower()):
+                # Aggiunge il contatto ai risultati
+                results.append(contact.strip())
+
+        # Stampa i risultati della ricerca
+        if results:
+            print("Risultati della ricerca:")
+            for result in results:
+                print(result)
+        else:
+            print(
+                f"Nessun contatto trovato con il parametro di ricerca: {term}")
 
 
 def main():
+    # Crea un parser per gestire gli argomenti della riga di comando
     parser = argparse.ArgumentParser(description="Gestione della rubrica")
-
     subparsers = parser.add_subparsers(
-        dest='comando', help='Comando da eseguire')
+        dest='command', help='Comando da eseguire')
 
-    # Comando per visualizzare i contatti
+    # Sottocomando per visualizzare i contatti
     subparsers.add_parser('visualizza', help='Visualizza tutti i contatti')
 
-    # Comando per aggiungere un contatto
-    parser_aggiungi = subparsers.add_parser(
+    # Sottocomando per aggiungere un nuovo contatto
+    parser_add = subparsers.add_parser(
         'aggiungi', help='Aggiungi un nuovo contatto')
+    parser_add.add_argument('first_name', type=str, help='Nome del contatto')
+    parser_add.add_argument('last_name', type=str, help='Cognome del contatto')
+    parser_add.add_argument('phone', type=str, help='Numero di telefono')
 
-    # Argomenti Obbligatori
-    parser_aggiungi.add_argument('nome', type=str, help='Nome del contatto')
-    parser_aggiungi.add_argument(
-        'cognome', type=str, help='Cognome del contatto')
-    parser_aggiungi.add_argument(
-        'telefono', type=str, help='Numero di telefono')
-
-    # Comando per eliminare un contatto
-    parser_elimina = subparsers.add_parser(
+    # Sottocomando per eliminare un contatto
+    parser_delete = subparsers.add_parser(
         'elimina', help='Elimina un contatto')
-    parser_elimina.add_argument('nome', type=str, help='Nome del contatto')
-    parser_elimina.add_argument(
-        'cognome', type=str, help='Cognome del contatto')
+    parser_delete.add_argument(
+        'first_name', type=str, help='Nome del contatto')
+    parser_delete.add_argument(
+        'last_name', type=str, help='Cognome del contatto')
 
-    args = parser.parse_args()
+    # Sottocomando per cercare un contatto
+    parser_search = subparsers.add_parser('cerca', help='Cerca un contatto')
+    parser_search.add_argument(
+        'term', type=str, help='Nome o cognome da cercare')
 
-    # Esegui il comando appropriato
-    if args.comando == 'aggiungi':
-        aggiungi_contatto(args.nome, args.cognome, args.telefono)
-    elif args.comando == 'visualizza':
-        visualizza_contatti()
-    elif args.comando == 'elimina':
-        elimina_contatto(args.nome, args.cognome)
+    args = parser.parse_args()  # Analizza gli argomenti della riga di comando
+
+    # Crea un'istanza della rubrica
+    address_book = AddressBook(FILE_RUBRICA)
+
+    # Esegue il comando specificato dall'utente
+    if args.command == 'aggiungi':
+        address_book.add_contact(args.first_name, args.last_name, args.phone)
+    elif args.command == 'visualizza':
+        address_book.display_contacts()
+    elif args.command == 'elimina':
+        address_book.delete_contact(args.first_name, args.last_name)
+    elif args.command == 'cerca':
+        address_book.search_contact(args.term)
     else:
-        parser.print_help()
+        parser.print_help()  # Mostra aiuto se il comando non è riconosciuto
 
 
 if __name__ == '__main__':
-    main()
+    main()  # Avvia il programma
