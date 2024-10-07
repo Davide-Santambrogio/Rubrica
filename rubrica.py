@@ -131,20 +131,14 @@ class AddressBook:
 
         for contact in contacts:
             contact_first_name, contact_last_name, *n = contact.strip().split()
-            # Controlla se il termine di ricerca è nel nome o cognome
             if (term.lower() in contact_first_name.lower() or
                     term.lower() in contact_last_name.lower()):
-                # Aggiunge il contatto ai risultati
                 results.append(contact.strip())
 
-        # Stampa i risultati della ricerca
         if results:
-            print("Risultati della ricerca:")
-            for result in results:
-                print(result)
+            return results
         else:
-            print(
-                f"Nessun contatto trovato con il parametro di ricerca: {term}")
+            return [f"Nessun contatto trovato con il parametro di ricerca: {term}"]
 
 
 def main():
