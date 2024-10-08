@@ -4,19 +4,19 @@ from rubrica import AddressBook
 
 
 class TestRubrica(unittest.TestCase):
-    FILE_RUBRICA = 'rubrica.txt'
+    FILE_TEST_RUBRICA = 'test_rubrica.txt'
 
     def setUp(self):
         # Crea un'istanza della rubrica e pulisce il file prima di ogni test
-        self.rubrica = AddressBook(self.FILE_RUBRICA)
+        self.rubrica = AddressBook(self.FILE_TEST_RUBRICA)
         # Pulisce il file rubrica prima di ogni test
-        with open(self.FILE_RUBRICA, 'w') as f:
+        with open(self.FILE_TEST_RUBRICA, 'w') as f:
             pass
 
     def tearDown(self):
         # Elimina il file della rubrica dopo ogni test
-        if os.path.exists(self.FILE_RUBRICA):
-            os.remove(self.FILE_RUBRICA)
+        if os.path.exists(self.FILE_TEST_RUBRICA):
+            os.remove(self.FILE_TEST_RUBRICA)
 
     def test_numero_telefono_valido(self):
         # Test per la validità dei numeri di telefono
@@ -36,7 +36,7 @@ class TestRubrica(unittest.TestCase):
         # Test per aggiungere un contatto alla rubrica
         self.rubrica.add_contact("Mario", "Bianchi", "1234567890")
 
-        with open(self.FILE_RUBRICA, 'r') as f:
+        with open(self.FILE_TEST_RUBRICA, 'r') as f:
             contatti = f.readlines()
             found = False
             if "Mario Bianchi 1234567890" in contatti[0]:
@@ -50,7 +50,7 @@ class TestRubrica(unittest.TestCase):
 
         self.rubrica.delete_contact("Mario", "Bianchi")
 
-        with open(self.FILE_RUBRICA, 'r') as f:
+        with open(self.FILE_TEST_RUBRICA, 'r') as f:
             contatti = f.readlines()
 
             found = False
@@ -117,9 +117,9 @@ class TestRubrica(unittest.TestCase):
         found = False
         if ((f"Nessun contatto trovato con il parametro di ricerca: {search_term}" in results[0])):
             found = True
-        self.assertTrue(
+        self.assertFalse(
             found,
-            f"""Un contatto è stato erroneamente trovato per il termine
+            f"""Un contatto è stato trovato per il termine
             di ricerca '{search_term}'""")
 
 

@@ -1,8 +1,27 @@
 import argparse
 import os
 
-# Nome del file di testo per salvare i contatti
-FILE_RUBRICA = 'rubrica.txt'
+# Nome della cartella per le rubriche
+DIRECTORY_RUBRICHE = 'rubriche'
+
+
+def show_file_available():
+    """Mostra la lista dei file rubrica disponibili nella directory rubriche"""
+    if not os.path.exists(DIRECTORY_RUBRICHE):
+        print("Non esiste la directory rubriche. Creandola ora...")
+        os.makedirs(DIRECTORY_RUBRICHE)
+
+    # Ottiene la lista dei file di testo nella directory rubriche
+    address_books = [f for f in os.listdir(
+        DIRECTORY_RUBRICHE) if f.endswith('.txt')]
+
+    if address_books:
+        print("Rubriche disponibili:")
+        for address_book in address_books:
+            # Mostra i file senza estensione .txt
+            print(f"- {address_book[:-4]}")
+    else:
+        print("Non ci sono rubriche disponibili al momento.")
 
 
 class AddressBook:
@@ -17,11 +36,9 @@ class AddressBook:
                 pass  # Crea un file vuoto
 
     def only_letters(self, s):
-        # Controlla se la stringa contiene solo lettere
         return all(char.isalpha() for char in s)
 
     def valid_phone_number(self, phone):
-        # Controlla se il numero di telefono è valido
         return phone.isdigit() and len(phone) <= 10
 
     def read_contacts(self):
@@ -40,6 +57,7 @@ class AddressBook:
         # Visualizza tutti i contatti nella rubrica
         contacts = self.read_contacts()
         if contacts:
+            print("\nContatti presenti in questa Rubrica:\n")
             for contact in contacts:
                 print(contact.strip())
         else:
@@ -142,8 +160,17 @@ class AddressBook:
 
 
 def main():
+    # Mostra le rubriche disponibili
+    show_file_available()
+
     # Crea un parser per gestire gli argomenti della riga di comando
     parser = argparse.ArgumentParser(description="Gestione della rubrica")
+
+    # Aggiungi un argomento per il nome della rubrica (es: amici, lavoro, famiglia)
+    parser.add_argument('rubrica', type=str,
+                        help="Nome della rubrica (senza estensione)")
+
+    # Sottocomandi per le operazioni (visualizza, aggiungi, elimina, cerca)
     subparsers = parser.add_subparsers(
         dest='command', help='Comando da eseguire')
 
@@ -172,8 +199,11 @@ def main():
 
     args = parser.parse_args()  # Analizza gli argomenti della riga di comando
 
-    # Crea un'istanza della rubrica
-    address_book = AddressBook(FILE_RUBRICA)
+    # Crea il file rubrica scelto
+    rubrica_file = os.path.join(DIRECTORY_RUBRICHE, f"{args.rubrica}.txt")
+
+    # Crea un'istanza della rubrica con il file scelto
+    address_book = AddressBook(rubrica_file)
 
     # Esegue il comando specificato dall'utente
     if args.command == 'aggiungi':
@@ -183,7 +213,9 @@ def main():
     elif args.command == 'elimina':
         address_book.delete_contact(args.first_name, args.last_name)
     elif args.command == 'cerca':
-        address_book.search_contact(args.term)
+        results = address_book.search_contact(args.term)
+        for result in results:
+            print(result)
     else:
         parser.print_help()  # Mostra aiuto se il comando non è riconosciuto
 
